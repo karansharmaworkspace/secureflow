@@ -6,6 +6,8 @@
 
 ### PSB Hackathon iDEA 2.0 — Problem Statement PS9
 
+**Live Demo:** https://secureflowll.streamlit.app/
+
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Java](https://img.shields.io/badge/Java-11+-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-1.29+-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
@@ -224,7 +226,6 @@ ML threshold before any automated action
 │  │    GITHUB ACTIONS       │ →  │        FLAGGER          │                 │
 │  │   (Orchestration)       │    │   (Canary Deployment)   │                 │
 │  └─────────────────────────┘    └─────────────────────────┘                 │
->>>>>>> 60a1c12d3650dd7d730e56ba7559787c2ae27ac8
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -355,7 +356,7 @@ ML threshold before any automated action
 # ❖ 1. Install Python dependencies
 pip install -r requirements.txt
 
-# ♢ 2. Generate synthetic training data (10,000+ endpoints)
+# ♢ 2. Generate synthetic training data (1,13,836 endpoints)
 python demo/traffic-generator/simulate.py --generate-features
 # Output: demo/test-data/endpoint_features.parquet
 
@@ -464,7 +465,7 @@ kubectl port-forward -n remember svc/minio-console 9001:9001
 
 <div align="center">
 
-**The traffic simulator generates realistic Union Bank-scale data with 10,000+ API endpoints across 17 banking domains.**
+**The traffic simulator generates realistic Union Bank-scale data with 1,13,836 API endpoints across 17 banking domains.**
 
 </div>
 
@@ -473,7 +474,7 @@ kubectl port-forward -n remember svc/minio-console 9001:9001
 python demo/traffic-generator/simulate.py --generate-features
 
 # ⊞ Output: demo/test-data/endpoint_features.parquet
-# ≡ ~10,000 rows × 30 columns (16 features + metadata + labels)
+# ≡ ~1,13,836 rows × 30 columns (16 features + metadata + labels)
 ```
 
 <table>
@@ -483,7 +484,7 @@ python demo/traffic-generator/simulate.py --generate-features
 #### ◉ What the Simulator Models
 
 - ☰ **17 banking domains** (Accounts, UPI, NEFT, IMPS, RTGS, Cards, Loans, KYC, etc.)
-- ≡ **10,000+ unique endpoints** with version drift (v1/v2/v3)
+- ≡ **1,13,836 unique endpoints** with version drift (v1/v2/v3)
 - ≡ **Realistic traffic patterns** per domain (critical, high, moderate, low, batch)
 - ♢ **Overlapping feature distributions** (forces multi-feature learning)
 - ⌖ **20+ user-agents** (real browsers, mobile apps, monitoring tools)

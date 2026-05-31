@@ -847,7 +847,7 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 
 ### 🏆 Built for PSB Hackathon iDEA 2.0 — Problem Statement PS9
 
-**Team Logic Legion** — K J Somaiya College of Engineering, Somaiya Vidyavihar University
+**Team Logic Legion**
 
 ---
 

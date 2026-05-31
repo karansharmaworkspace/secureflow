@@ -1,0 +1,53 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all
+  namespace: listen
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-kafka-ingress
+  namespace: listen
+spec:
+  podSelector:
+    matchLabels:
+      strimzi.io/name: kafka-cluster-kafka
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: zeek-sensor
+    - podSelector:
+        matchLabels:
+          app: flink-job
+    ports:
+    - port: 9092
+    - port: 9093
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-kafka-egress
+  namespace: listen
+spec:
+  podSelector:
+    matchLabels:
+      app: zeek-sensor
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          strimzi.io/name: kafka-cluster-kafka
+    ports:
+    - port: 9092
+    - port: 9093
+  policyTypes:
+  - Egress

@@ -1,0 +1,16 @@
+{
+  "name": "frontend-api-analyzer",
+  "version": "1.0.0",
+  "description": "Discover API endpoints by crawling frontend JS bundles",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "playwright": "^1.44.0"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2"
+  }
+}

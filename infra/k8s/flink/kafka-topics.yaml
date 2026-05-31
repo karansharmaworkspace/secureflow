@@ -1,0 +1,13 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: enriched-features
+  namespace: listen
+  labels:
+    strimzi.io/cluster: kafka-cluster
+spec:
+  partitions: 6
+  replicas: 3
+  config:
+    retention.ms: 7776000000
+    segment.bytes: 1073741824

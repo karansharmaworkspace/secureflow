@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backstage
+  namespace: enforce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backstage
+  template:
+    metadata:
+      labels:
+        app: backstage
+    spec:
+      containers:
+      - name: backstage
+        image: backstage:1.28.0
+        ports:
+        - containerPort: 7007
+        env:
+        - name: POSTGRES_HOST
+          value: backstage-db.enforce.svc
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_USER
+          value: backstage
+        - name: POSTGRES_PASSWORD
+          value: backstage
+        - name: APP_CONFIG_backend_baseUrl
+          value: http://backstage.enforce.svc:7007
+        volumeMounts:
+        - name: app-config
+          mountPath: /opt/app/app-config.local.yaml
+          subPath: app-config.local.yaml
+      volumes:
+      - name: app-config
+        configMap:
+          name: backstage-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backstage
+  namespace: enforce
+spec:
+  ports:
+  - port: 7007
+    targetPort: 7007
+  selector:
+    app: backstage
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backstage-db
+  namespace: enforce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backstage-db
+  template:
+    metadata:
+      labels:
+        app: backstage-db
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        env:
+        - name: POSTGRES_USER
+          value: backstage
+        - name: POSTGRES_PASSWORD
+          value: backstage
+        - name: POSTGRES_DB
+          value: backstage
+        ports:
+        - containerPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backstage-db
+  namespace: enforce
+spec:
+  ports:
+  - port: 5432
+  selector:
+    app: backstage-db
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backstage-config
+  namespace: enforce
+data:
+  app-config.local.yaml: |
+    app:
+      title: Zombie API Platform
+      baseUrl: http://backstage.enforce.svc:7007
+
+    organization:
+      name: Union Bank of India
+
+    backend:
+      baseUrl: http://backstage.enforce.svc:7007
+      listen:
+        port: 7007
+      database:
+        client: pg
+        connection:
+          host: backstage-db.enforce.svc
+          port: 5432
+          user: backstage
+          password: backstage
+
+    catalog:
+      rules:
+        - allow: [APIEntity, Component, Domain, System, Resource]
+      providers:
+        zombieApiProvider:
+          entityFilename: catalog-info.yaml
+          schedule:
+            frequency: PT5M
+            timeout: PT30S

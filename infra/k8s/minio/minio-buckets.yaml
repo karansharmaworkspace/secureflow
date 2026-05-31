@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-create-buckets
+  namespace: remember
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: mc
+        image: minio/mc:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          mc alias set platform http://minio:9000 minioadmin minioadmin123
+          mc mb platform/historical-logs
+          mc mb platform/model-artifacts
+          mc mb platform/feature-snapshots
+          mc policy set download platform/historical-logs
+          mc policy set download platform/model-artifacts
+          mc policy set download platform/feature-snapshots
+          echo "Buckets created successfully"

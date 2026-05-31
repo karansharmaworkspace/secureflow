@@ -1,0 +1,122 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: remember
+data:
+  redis.conf: |
+    bind 0.0.0.0
+    port 6379
+    maxmemory 4gb
+    maxmemory-policy allkeys-lru
+    appendonly yes
+    appendfsync everysec
+    save 900 1
+    save 300 10
+    save 60 10000
+  sentinel.conf: |
+    port 26379
+    sentinel monitor mymaster redis-0.redis.remember.svc 6379 2
+    sentinel down-after-milliseconds mymaster 5000
+    sentinel failover-timeout mymaster 60000
+    sentinel parallel-syncs mymaster 1
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: remember
+spec:
+  serviceName: redis
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - redis
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        command:
+        - /bin/sh
+        - -c
+        - |
+          if [[ "$HOSTNAME" == *"redis-0" ]]; then
+            redis-server /etc/redis/redis.conf
+          else
+            redis-server /etc/redis/redis.conf --slaveof redis-0.redis.remember.svc 6379
+          fi
+        ports:
+        - containerPort: 6379
+        volumeMounts:
+        - name: config
+          mountPath: /etc/redis
+        - name: data
+          mountPath: /data
+      - name: sentinel
+        image: redis:7-alpine
+        command:
+        - redis-sentinel
+        - /etc/redis/sentinel.conf
+        ports:
+        - containerPort: 26379
+        volumeMounts:
+        - name: config
+          mountPath: /etc/redis
+      volumes:
+      - name: config
+        configMap:
+          name: redis-config
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: remember
+spec:
+  clusterIP: None
+  ports:
+  - port: 6379
+    targetPort: 6379
+    name: redis
+  - port: 26379
+    targetPort: 26379
+    name: sentinel
+  selector:
+    app: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-master
+  namespace: remember
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    statefulset.kubernetes.io/pod-name: redis-0

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flagger
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: flagger
+  namespace: flagger
+spec:
+  repo: https://flagger.app
+  chart: flagger
+  version: 1.36.0
+  targetNamespace: flagger
+  valuesContent: |-
+    metricsServer: http://prometheus.act.svc:9090
+    meshProvider: kubernetes

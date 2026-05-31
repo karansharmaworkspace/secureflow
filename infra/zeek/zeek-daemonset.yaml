@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: zeek-sensor
+  namespace: listen
+  labels:
+    app: zeek-sensor
+spec:
+  selector:
+    matchLabels:
+      app: zeek-sensor
+  template:
+    metadata:
+      labels:
+        app: zeek-sensor
+    spec:
+      hostNetwork: true
+      nodeSelector:
+        node-role.kubernetes.io/zeek: ""
+      containers:
+      - name: zeek
+        image: zombie-platform/zeek-sensor:latest
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+            - NET_ADMIN
+            - SYS_ADMIN
+        volumeMounts:
+        - name: zeek-logs
+          mountPath: /opt/zeek/logs
+        - name: zeek-config
+          mountPath: /opt/zeek/share/zeek/site/config
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka-cluster-kafka-bootstrap.kafka:9092"
+      - name: kafka-producer
+        image: python:3.11-slim
+        command:
+        - /bin/sh
+        - -c
+        - |
+          pip install confluent-kafka
+          tail -F /opt/zeek/logs/current/http.log | python /opt/zeek/bin/stream-to-kafka.py $KAFKA_BROKER
+        volumeMounts:
+        - name: zeek-logs
+          mountPath: /opt/zeek/logs
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka-cluster-kafka-bootstrap.kafka:9092"
+      volumes:
+      - name: zeek-logs
+        emptyDir: {}
+      - name: zeek-config
+        configMap:
+          name: zeek-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zeek-config
+  namespace: listen
+data:
+  zeek-http-log.zeek: |
+    module HTTPLog;
+
+    export {
+        redef record Conn::Info += {
+            http_method: string &log &optional;
+            http_path: string &log &optional;
+            http_status: string &log &optional;
+            http_user_agent: string &log &optional;
+            http_host: string &log &optional;
+            http_referrer: string &log &optional;
+            http_response_size: count &log &optional;
+        };
+    }
+
+    event http_request(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string)
+    {
+        c$http = HTTP::Info($ts = network_time());
+        c$http$method = method;
+        c$http$path = original_URI;
+    }
+
+    event http_reply(c: connection, version: string, status_code: count, reason: string)
+    {
+        if (c?$http)
+            c$http$status_code = status_code;
+    }
+
+    event http_header(c: connection, is_orig: bool, name: string, value: string)
+    {
+        if (c?$http)
+        {
+            if (to_lower(name) == "user-agent")
+                c$http$user_agent = value;
+            if (to_lower(name) == "host")
+                c$http$host = value;
+            if (to_lower(name) == "referer")
+                c$http$referrer = value;
+        }
+    }
+
+    event http_endpoint(c: connection)
+    {
+        if (c?$http)
+            c$http$response_size = c$http$resp_body_len;
+    }
+
+  local.zeek: |
+    @load base/frameworks/logging
+    @load base/protocols/conn
+    @load base/protocols/http
+    @load config/zeek-http-log
+
+    redef Log::disable_stream(Conn::LOG);
+    redef Log::disable_stream(HTTP::LOG);
+    redef Log::enable_stream(HTTPLog::LOG);

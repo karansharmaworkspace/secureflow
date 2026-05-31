@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+  namespace: detect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+    spec:
+      containers:
+      - name: mlflow
+        image: ghcr.io/mlflow/mlflow:v2.13.2
+        args:
+        - mlflow
+        - server
+        - --host
+        - "0.0.0.0"
+        - --port
+        - "5000"
+        - --backend-store-uri
+        - "postgresql+psycopg2://mlflow:mlflow@mlflow-db.detect.svc:5432/mlflow"
+        - --default-artifact-root
+        - "s3://model-artifacts/"
+        - --artifacts-destination
+        - "s3://model-artifacts/"
+        env:
+        - name: MLFLOW_S3_ENDPOINT_URL
+          value: http://minio.remember.svc:9000
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: minio-credentials
+              key: root-user
+              namespace: remember
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-credentials
+              key: root-password
+              namespace: remember
+        ports:
+        - containerPort: 5000
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow
+  namespace: detect
+spec:
+  ports:
+  - port: 5000
+    targetPort: 5000
+  selector:
+    app: mlflow
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow-db
+  namespace: detect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow-db
+  template:
+    metadata:
+      labels:
+        app: mlflow-db
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        env:
+        - name: POSTGRES_USER
+          value: mlflow
+        - name: POSTGRES_PASSWORD
+          value: mlflow
+        - name: POSTGRES_DB
+          value: mlflow
+        ports:
+        - containerPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow-db
+  namespace: detect
+spec:
+  ports:
+  - port: 5432
+  selector:
+    app: mlflow-db

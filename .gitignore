@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Java build artifacts
+flink-job/target/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# ML artifacts
+mlruns/
+mlartifacts/
+mlflow.db
+*.parquet
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node
+node_modules/
+
+# OpenCode session data
+.omo/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Demo output (regeneratable)
+demo/test-data/registry_scan.json
+demo/test-data/registry_report.html

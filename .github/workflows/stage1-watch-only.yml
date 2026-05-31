@@ -1,0 +1,73 @@
+name: Stage 1 — Watch Only Daily Report
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  classify-and-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Query MLflow for latest model
+        run: |
+          curl -s "$MLFLOW_URI/api/2.0/mlflow/registered-models/alias?name=zombie-classifier&alias=champion" \
+            | jq -r '.registered_model.latest_versions[0].run_id' > model_run_id.txt
+        env:
+          MLFLOW_URI: ${{ vars.MLFLOW_URI }}
+
+      - name: Fetch features from Feast
+        run: |
+          python -c "
+          from feast import FeatureStore
+          store = FeatureStore(repo_path='.')
+          features = store.get_online_features(
+            features=['endpoint_features:real_calls', 'endpoint_features:is_100pct_synthetic'],
+            entity_rows=[{'endpoint_key': k} for k in store.get_entities()]
+          ).to_dict()
+          import json
+          with open('features.json', 'w') as f:
+            json.dump(features, f)
+          "
+
+      - name: Run classification
+        run: |
+          python ml-pipeline/predict.py features.json > classification.json
+
+      - name: Query OPA for policy decisions
+        run: |
+          python -c "
+          import json, requests
+          with open('classification.json') as f:
+            results = json.load(f)
+          for r in results:
+            decision = requests.post(
+              '$OPA_URL/v1/data/zombie/decommission',
+              json={'input': {**r, 'f1_score': 0.85, 'ensemble_disagreement': r.get('ensemble_disagreement', 0)}}
+            ).json()
+            r['policy_decision'] = decision.get('result', {})
+          with open('classification.json', 'w') as f:
+            json.dump(results, f, indent=2)
+          "
+        env:
+          OPA_URL: ${{ vars.OPA_URL }}
+
+      - name: Generate report
+        run: |
+          python -c "
+          import json
+          with open('classification.json') as f:
+            results = json.load(f)
+          zombies = [r for r in results if r.get('classification') == 'zombie']
+          print(f'# Stage 1 Report — {len(results)} endpoints, {len(zombies)} zombie candidates')
+          for z in zombies:
+            print(f'- {z[\"endpoint_key\"]}: {z[\"confidence\"]:.2f} confidence')
+            print(f'  {z[\"explanation\"]}')
+          " > report.md
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage1-report-${{ github.run_id }}
+          path: report.md

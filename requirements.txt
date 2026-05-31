@@ -1,0 +1,18 @@
+# ML Pipeline
+xgboost
+shap
+mlflow
+pandas
+numpy
+scikit-learn
+pyarrow
+boto3
+optuna
+cloudpickle
+
+# Discovery / WAF Poller
+requests
+confluent-kafka
+
+# Dashboard
+streamlit

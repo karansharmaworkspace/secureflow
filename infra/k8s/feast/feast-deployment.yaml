@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: feast-serving
+  namespace: remember
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: feast-serving
+  template:
+    metadata:
+      labels:
+        app: feast-serving
+    spec:
+      serviceAccountName: feast-sa
+      containers:
+      - name: feast
+        image: feastdev/feature-server:0.39.0
+        ports:
+        - containerPort: 6566
+          name: grpc
+        - containerPort: 6567
+          name: http
+        env:
+        - name: FEast__FEATURE_STORE_CONFIG
+          value: /etc/feast/feature_store.yaml
+        volumeMounts:
+        - name: config
+          mountPath: /etc/feast
+        - name: repo
+          mountPath: /opt/feast/repo
+      volumes:
+      - name: config
+        configMap:
+          name: feast-config
+      - name: repo
+        configMap:
+          name: feast-repo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: feast-serving
+  namespace: remember
+spec:
+  ports:
+  - port: 6566
+    name: grpc
+  - port: 6567
+    name: http
+  selector:
+    app: feast-serving
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: feast-config
+  namespace: remember
+data:
+  feature_store.yaml: |
+    project: zombie_platform
+    provider: local
+    online_store:
+      type: redis
+      connection_string: redis-master.remember.svc:6379
+    offline_store:
+      type: file
+    registry:
+      registry_type: file
+      path: /opt/feast/repo/registry.db
+      cache_ttl_seconds: 60
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: feast-repo
+  namespace: remember
+data:
+  features.py: |
+    from datetime import timedelta
+    from feast import Entity, FeatureView, Field, FileSource
+    from feast.types import Float64, Int64, String, Bool
+
+    endpoint = Entity(
+        name="endpoint_key",
+        description="Composite key: host|method|path",
+        value_type=String,
+    )
+
+    endpoint_features = FeatureView(
+        name="endpoint_features",
+        entities=[endpoint],
+        ttl=timedelta(days=90),
+        schema=[
+            Field(name="total_calls", dtype=Int64),
+            Field(name="synthetic_calls", dtype=Int64),
+            Field(name="real_calls", dtype=Int64),
+            Field(name="days_since_last_real_call", dtype=Int64),
+            Field(name="unique_user_agents", dtype=Int64),
+            Field(name="unique_source_ips", dtype=Int64),
+            Field(name="auth_ratio", dtype=Float64),
+            Field(name="ratio_2xx", dtype=Float64),
+            Field(name="ratio_4xx", dtype=Float64),
+            Field(name="ratio_5xx", dtype=Float64),
+            Field(name="response_size_mean", dtype=Float64),
+            Field(name="response_size_stddev", dtype=Float64),
+            Field(name="interarrival_mean_ms", dtype=Float64),
+            Field(name="interarrival_stddev_ms", dtype=Float64),
+            Field(name="unique_hours_of_day", dtype=Int64),
+            Field(name="is_100pct_synthetic", dtype=Bool),
+        ],
+        online=True,
+        source=FileSource(
+            path="s3://feature-snapshots/endpoint_features.parquet",
+            file_format="parquet",
+            timestamp_field="event_timestamp",
+            created_timestamp_column="created_timestamp",
+        ),
+        tags={"team": "logic-legion", "layer": "detect"},
+    )
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: feast-sa
+  namespace: remember

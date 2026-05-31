@@ -1,0 +1,58 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: zeek-producer
+  namespace: listen
+  labels:
+    strimzi.io/cluster: kafka-cluster
+spec:
+  authentication:
+    type: tls
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: raw-api-calls
+          patternType: literal
+        operations:
+          - Write
+          - Describe
+        host: "*"
+      - resource:
+          type: cluster
+          name: kafka-cluster
+          patternType: literal
+        operations:
+          - DescribeConfigs
+        host: "*"
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: flink-consumer
+  namespace: listen
+  labels:
+    strimzi.io/cluster: kafka-cluster
+spec:
+  authentication:
+    type: tls
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: raw-api-calls
+          patternType: literal
+        operations:
+          - Read
+          - Describe
+        host: "*"
+      - resource:
+          type: group
+          name: flink-consumer-group
+          patternType: literal
+        operations:
+          - Read
+          - Describe
+        host: "*"

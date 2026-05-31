@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opa
+  namespace: enforce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: opa
+  template:
+    metadata:
+      labels:
+        app: opa
+    spec:
+      containers:
+      - name: opa
+        image: openpolicyagent/opa:0.66.0
+        args:
+        - run
+        - --server
+        - --addr=0.0.0.0:8181
+        - --log-level=info
+        - --set=decision_logs.console=true
+        - /policies
+        ports:
+        - containerPort: 8181
+        volumeMounts:
+        - name: policies
+          mountPath: /policies
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8181
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8181
+      volumes:
+      - name: policies
+        configMap:
+          name: opa-policies
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opa
+  namespace: enforce
+spec:
+  ports:
+  - port: 8181
+    targetPort: 8181
+  selector:
+    app: opa
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opa-policies
+  namespace: enforce
+data:
+  decommission.rego: |
+    package zombie.decommission
+
+    import future.keywords.if
+    import future.keywords.in
+
+    default allow = false
+    default require_human_review = true
+
+    allow if {
+      input.f1_score >= 0.85
+      input.is_100pct_synthetic == true
+      input.ensemble_disagreement < 0.3
+    }
+
+    require_human_review if {
+      input.ensemble_disagreement >= 0.3
+    }
+
+    decommission_decision = "approve" if {
+      allow
+      not require_human_review
+    }
+
+    decommission_decision = "human_review" if {
+      require_human_review
+    }
+
+    decommission_decision = "reject" if {
+      not allow
+    }
+
+  safeguards.rego: |
+    package zombie.safeguards
+
+    require_two_approvals = true
+
+    require_canary if {
+      input.decommission_decision == "approve"
+    }
+
+    canary_duration_hours := 24
+    canary_traffic_percent := 1
+
+    require_slow_drain if {
+      input.decommission_decision == "approve"
+    }
+
+    drain_duration_days := 10
+
+    auto_rollback_on_anomaly := true
+
+  audit.rego: |
+    package zombie.audit
+
+    audit_entry = sprintf(
+      "endpoint=%s, f1=%.2f, synthetic=%v, ensemble_disagreement=%.2f, decision=%s, ts=%s",
+      [input.endpoint_key, input.f1_score, input.is_100pct_synthetic,
+       input.ensemble_disagreement, input.decommission_decision, input.timestamp]
+    )

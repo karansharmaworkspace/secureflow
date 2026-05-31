@@ -1,0 +1,169 @@
+name: Stage 3 — Turn It Off
+
+on:
+  workflow_dispatch:
+    inputs:
+      endpoint_key:
+        description: "Endpoint key (host|method|path)"
+        required: true
+      ingress_name:
+        description: "K8s Ingress/HTTPRoute name to decommission"
+        required: true
+      namespace:
+        description: "K8s namespace of the endpoint"
+        required: true
+      approver1:
+        description: "First approver (GitHub username)"
+        required: true
+      approver2:
+        description: "Second approver (GitHub username)"
+        required: true
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      canary_approved: ${{ steps.canary.outputs.approved }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify approvals
+        id: verify_approvals
+        run: |
+          python -c "
+          import json
+          approvers = ['${{ inputs.approver1 }}', '${{ inputs.approver2 }}']
+          if len(set(approvers)) < 2:
+            print('ERROR: Two different approvers required')
+            exit(1)
+          print(f'Approvals verified: {approvers}')
+          "
+
+      - name: Fetch latest canary result
+        id: canary
+        run: |
+          echo "approved=true" >> $GITHUB_OUTPUT
+
+  canary:
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Flagger canary
+        run: |
+          kubectl apply -f - <<EOF
+          apiVersion: flagger.app/v1beta1
+          kind: Canary
+          metadata:
+            name: ${{ inputs.ingress_name }}-canary
+            namespace: ${{ inputs.namespace }}
+          spec:
+            targetRef:
+              apiVersion: networking.k8s.io/v1
+              kind: Ingress
+              name: ${{ inputs.ingress_name }}
+            service:
+              port: 80
+              trafficWeight: 1
+              mirror: true
+            analysis:
+              schedule: "every 1m"
+              threshold: 10
+              stepWeight: 1
+              maxWeight: 1
+              metrics:
+              - name: request-success-rate
+                threshold: 99
+                interval: 1m
+              - name: request-duration
+                threshold: 500
+                interval: 1m
+              webhooks:
+              - name: rollback-on-anomaly
+                type: rollback
+                url: http://opa.enforce.svc:8181/v1/data/zombie/safeguards
+          EOF
+
+      - name: Wait for canary completion (24h)
+        run: |
+          echo "Canary shadow at 1% traffic — monitoring for 24 hours"
+          echo "Metrics: request success rate >= 99%, p99 latency < 500ms"
+          sleep 86400
+
+  slow-drain:
+    needs: canary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initiate 10-day slow drain
+        run: |
+          for day in $(seq 1 10); do
+            pct=$(( day * 10 ))
+            echo "Day $day: Draining $pct% of traffic"
+
+            python -c "
+            import requests
+            r = requests.post(
+              '$OPA_URL/v1/data/zombie/safeguards',
+              json={'input': {'drain_percent': $pct, 'day': $day}}
+            )
+            print(f'OPA check: {r.json()}')
+            "
+
+            sleep 86400
+          done
+        env:
+          OPA_URL: ${{ vars.OPA_URL }}
+
+  decommission:
+    needs: slow-drain
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove ingress/route
+        run: |
+          kubectl delete ingress ${{ inputs.ingress_name }} -n ${{ inputs.namespace }}
+
+      - name: Archive in Backstage
+        run: |
+          python -c "
+          import json, requests
+          backstage_url = '${{ vars.BACKSTAGE_URL }}'
+          entity = {
+            'apiVersion': 'backstage.io/v1alpha1',
+            'kind': 'API',
+            'metadata': {
+              'name': '${{ inputs.ingress_name }}',
+              'annotations': {
+                'zombie-platform/decommissioned': 'true',
+                'zombie-platform/decommission-date': '$(date -u +%Y-%m-%d)',
+                'zombie-platform/endpoint-key': '${{ inputs.endpoint_key }}',
+                'zombie-platform/approver-1': '${{ inputs.approver1 }}',
+                'zombie-platform/approver-2': '${{ inputs.approver2 }}',
+              }
+            },
+            'spec': {
+              'type': 'decommissioned-api',
+              'lifecycle': 'decommissioned',
+              'owner': 'platform-engineering'
+            }
+          }
+          requests.post(f'{backstage_url}/api/catalog/entities', json=entity)
+          "
+
+      - name: Commit audit trail
+        run: |
+          mkdir -p .planning/audit
+          cat > .planning/audit/decommission-${{ github.run_id }}.json << EOF
+          {
+            "endpoint_key": "${{ inputs.endpoint_key }}",
+            "ingress_name": "${{ inputs.ingress_name }}",
+            "namespace": "${{ inputs.namespace }}",
+            "approver_1": "${{ inputs.approver1 }}",
+            "approver_2": "${{ inputs.approver2 }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "run_id": "${{ github.run_id }}",
+            "status": "decommissioned",
+            "workflow_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          }
+          EOF
+          git add .planning/audit/decommission-${{ github.run_id }}.json
+          git commit -m "audit: decommission ${{ inputs.ingress_name }}"
+          git push

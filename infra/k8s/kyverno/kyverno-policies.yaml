@@ -1,0 +1,79 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-api-labels
+  annotations:
+    policies.kyverno.io/title: Require API Sunset Labels
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Ingress
+    kyverno.io/kubernetes-version: "1.27+"
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+  - name: require-sunset-date
+    match:
+      any:
+      - resources:
+          kinds:
+          - Ingress
+          - HTTPRoute
+    validate:
+      message: "All API routes must specify x-api-sunset-date label"
+      pattern:
+        metadata:
+          labels:
+            x-api-sunset-date: "?*"
+  - name: require-owner-team
+    match:
+      any:
+      - resources:
+          kinds:
+          - Ingress
+          - HTTPRoute
+    validate:
+      message: "All API routes must specify x-api-owner-team label"
+      pattern:
+        metadata:
+          labels:
+            x-api-owner-team: "?*"
+  - name: require-owner-slack
+    match:
+      any:
+      - resources:
+          kinds:
+          - Ingress
+          - HTTPRoute
+    validate:
+      message: "All API routes must specify x-api-owner-slack annotation"
+      pattern:
+        metadata:
+          annotations:
+            x-api-owner-slack: "?*"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: api-sunset-enforcement
+  annotations:
+    policies.kyverno.io/title: Enforce API Sunset Compliance
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+  - name: reject-expired-sunset
+    match:
+      any:
+      - resources:
+          kinds:
+          - Ingress
+          - HTTPRoute
+    validate:
+      message: "API has passed its sunset date. Create PR to extend or schedule decommission."
+      deny:
+        conditions:
+          any:
+          - key: "{{ time.now() }}"
+            operator: GreaterThanOrEquals
+            value: "{{ request.object.metadata.labels.\"x-api-sunset-date\" || '' }}"

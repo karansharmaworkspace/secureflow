@@ -610,7 +610,7 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│[CRYSTAL] SHAP Explanation for Endpoint: api.bank.example.com|GET|/api/v1/users│
+│[CRYSTAL]SHAP Explanation for Endpoint:api.bank.example.com|GET|/api/v1/users│
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  real_calls=0.00          (low,  -1.92)  ████████████████████░░░░░░░░░░░░   │

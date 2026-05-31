@@ -382,10 +382,14 @@ def render_demo_mode():
     data = None
 
     if run_btn:
+        tmp_dir = tempfile.mkdtemp()
+        parquet_path = os.path.join(tmp_dir, "endpoint_features.parquet")
+        scan_path = os.path.join(tmp_dir, "registry_scan.json")
+
         with st.spinner("Generating synthetic traffic data ..."):
             import subprocess
             result = subprocess.run(
-                [sys.executable, str(PROJECT_ROOT / "demo" / "traffic-generator" / "simulate.py"), "--generate-features"],
+                [sys.executable, str(PROJECT_ROOT / "demo" / "traffic-generator" / "simulate.py"), "--generate-features", parquet_path],
                 cwd=str(PROJECT_ROOT), capture_output=True, text=True, timeout=120,
             )
             if result.returncode != 0:
@@ -394,10 +398,7 @@ def render_demo_mode():
         with st.spinner("Scanning registry ..."):
             sys.path.insert(0, str(SCRIPT_DIR))
             from registry_scanner import scan
-            data = scan(
-                str(PROJECT_ROOT / "demo" / "test-data" / "endpoint_features.parquet"),
-                str(PROJECT_ROOT / "demo" / "test-data" / "registry_scan.json"),
-            )
+            data = scan(parquet_path, scan_path)
 
     if cached_btn:
         scan_json = PROJECT_ROOT / "demo" / "test-data" / "registry_scan.json"

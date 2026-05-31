@@ -805,6 +805,8 @@ def generate_feature_data(output_path: str = "demo/test-data/endpoint_features.p
 
     rng = random.Random(42)
 
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
     endpoints = generate_endpoints()
     rows = []
     cost_savings = 0.0
@@ -888,7 +890,8 @@ def generate_feature_data(output_path: str = "demo/test-data/endpoint_features.p
 
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "--generate-features":
-        generate_feature_data()
+        output_path = sys.argv[2] if len(sys.argv) > 2 else "demo/test-data/endpoint_features.parquet"
+        generate_feature_data(output_path)
         return
 
     # Live traffic mode

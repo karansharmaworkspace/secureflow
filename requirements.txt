@@ -16,3 +16,4 @@ confluent-kafka
 
 # Dashboard
 streamlit
+plotly

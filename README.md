@@ -115,7 +115,7 @@ ML threshold before any automated action
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                             │
 │   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐              │
-│   │ DISCOVER │ → │ CLASSIFY │ → │   NOTIFY │ → │ DECOMMISSION │             │
+│   │ DISCOVER │ →  │ CLASSIFY │ →  │  NOTIFY  │ →  │ DECOMMISSION │          │
 │   └──────────┘    └──────────┘    └──────────┘    └──────────┘              │
 │                                                                             │
 │   • Zeek/WAF     • XGBoost      • GitHub Issues   • Canary Deploy           │

@@ -114,13 +114,13 @@ ML threshold before any automated action
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                             │
-│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐             │
+│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐              │
 │   │ DISCOVER │ → │ CLASSIFY │ → │   NOTIFY │ → │ DECOMMISSION │             │
-│   └──────────┘    └──────────┘    └──────────┘    └──────────┘             │
+│   └──────────┘    └──────────┘    └──────────┘    └──────────┘              │
 │                                                                             │
-│   • Zeek/WAF     • XGBoost      • GitHub Issues   • Canary Deploy          │
-│   • Kafka        • SHAP         • Owner Response  • Slow Drain             │
-│   • Flink        • MLflow       • 30-Day Window   • Audit Trail            │
+│   • Zeek/WAF     • XGBoost      • GitHub Issues   • Canary Deploy           │
+│   • Kafka        • SHAP         • Owner Response  • Slow Drain              │
+│   • Flink        • MLflow       • 30-Day Window   • Audit Trail             │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```

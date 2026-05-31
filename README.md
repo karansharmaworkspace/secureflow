@@ -23,19 +23,19 @@
 <tr>
 <td align="center" width="33%">
 
-### ⏱️ 15 Days → 30 Min
+### [TIME] 15 Days → 30 Min
 Manual decommission time reduced by **99.8%**
 
 </td>
 <td align="center" width="33%">
 
-### 💰 ₹4.8L/Year Saved
+### [COST] ₹4.8L/Year Saved
 Per zombie endpoint decommissioned
 
 </td>
 <td align="center" width="33%">
 
-### 🎯 F1 ≥ 0.85
+### [TARGET] F1 ≥ 0.85
 ML threshold before any automated action
 
 </td>
@@ -46,34 +46,34 @@ ML threshold before any automated action
 
 ---
 
-## 📋 Table of Contents
+## [DOC] Table of Contents
 
 <details>
-<summary><strong>📂 Navigation</strong></summary>
+<summary><strong>[DIR] Navigation</strong></summary>
 
-- [🎯 The Problem](#-the-problem)
-- [🏗️ Architecture](#️-architecture)
-- [📁 Repository Structure](#-repository-structure)
-- [🚀 Getting Started](#-getting-started)
-  - [⚙️ Prerequisites](#️-prerequisites)
-  - [⚡ Quick Start — ML Pipeline Only](#-quick-start--ml-pipeline-only)
-  - [☸️ Full Platform — Local Kubernetes](#️-full-platform--local-kubernetes)
-- [🎲 Generating Synthetic Data](#-generating-synthetic-data)
-- [📦 Dependencies](#-dependencies)
-- [🔧 How It Works](#-how-it-works)
-  - [🔍 Discovery Methods](#-discovery-methods)
-  - [🤖 ML Classification](#-ml-classification)
-  - [🔄 Three-Stage Decommission](#-three-stage-decommission)
-- [⚙️ Configuration](#️-configuration)
-- [⚠️ Known Limitations](#️-known-limitations)
-- [📜 Regulatory Compliance](#-regulatory-compliance)
-- [或许 License](#-license)
+- [[TARGET] The Problem](#-the-problem)
+- [[BUILD] Architecture](#️-architecture)
+- [[FOLDER] Repository Structure](#-repository-structure)
+- [[LAUNCH] Getting Started](#-getting-started)
+  - [[SETUP] Prerequisites](#️-prerequisites)
+  - [[FAST] Quick Start — ML Pipeline Only](#-quick-start--ml-pipeline-only)
+  - [[K8S] Full Platform — Local Kubernetes](#️-full-platform--local-kubernetes)
+- [[DATA] Generating Synthetic Data](#-generating-synthetic-data)
+- [[PKG] Dependencies](#-dependencies)
+- [[WRENCH] How It Works](#-how-it-works)
+  - [[SEARCH] Discovery Methods](#-discovery-methods)
+  - [[BOT] ML Classification](#-ml-classification)
+  - [[CYCLE] Three-Stage Decommission](#-three-stage-decommission)
+- [[SETUP] Configuration](#️-configuration)
+- [[WARN] Known Limitations](#️-known-limitations)
+- [[SCROLL] Regulatory Compliance](#-regulatory-compliance)
+- [[LIC] License](#-license)
 
 </details>
 
 ---
 
-## 🎯 The Problem
+## [TARGET] The Problem
 
 <div align="center">
 
@@ -85,18 +85,18 @@ ML threshold before any automated action
 <tr>
 <td width="50%">
 
-### 😱 The Zombie Threat
+### [ALERT] The Zombie Threat
 
-- ✅ Still run on the network and are accessible
-- ✅ No longer used by real users or services
-- ✅ Excluded from security scanning
-- ✅ Create unmonitored attack surfaces
-- ✅ Cost money to maintain
+- [OK] Still run on the network and are accessible
+- [OK] No longer used by real users or services
+- [OK] Excluded from security scanning
+- [OK] Create unmonitored attack surfaces
+- [OK] Cost money to maintain
 
 </td>
 <td width="50%">
 
-### 💸 Business Impact
+### [MONEY] Business Impact
 
 | Metric | Value |
 |--------|-------|
@@ -109,7 +109,7 @@ ML threshold before any automated action
 </tr>
 </table>
 
-### 🔄 Platform Lifecycle
+### [CYCLE] Platform Lifecycle
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -127,7 +127,7 @@ ML threshold before any automated action
 
 ---
 
-## 🏗️ Architecture
+## [BUILD] Architecture
 
 <div align="center">
 
@@ -142,7 +142,7 @@ ML threshold before any automated action
 └───────────────────────────────────────┬─────────────────────────────────────┘
                                         │
 ┌───────────────────────────────────────▼─────────────────────────────────────┐
-│  👁️  LISTEN LAYER                                                          │
+│  [EYE]️  LISTEN LAYER                                                          │
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐                    │
 │  │    ZEEK     │ →  │    KAFKA    │ →  │    FLINK    │                    │
 │  │   Sensor    │    │   Cluster   │    │ Feature Job │                    │
@@ -151,7 +151,7 @@ ML threshold before any automated action
 └───────────────────────────────────────┬─────────────────────────────────────┘
                                         │
 ┌───────────────────────────────────────▼─────────────────────────────────────┐
-│  🧠 REMEMBER LAYER                                                         │
+│  [BRAIN] REMEMBER LAYER                                                         │
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐                    │
 │  │    FEAST    │    │    REDIS    │    │    MINIO    │                    │
 │  │ Feature Store│   │  (Sentinel) │    │ S3 Compat   │                    │
@@ -159,7 +159,7 @@ ML threshold before any automated action
 └───────────────────────────────────────┬─────────────────────────────────────┘
                                         │
 ┌───────────────────────────────────────▼─────────────────────────────────────┐
-│  🔍 DETECT LAYER                                                           │
+│  [SEARCH] DETECT LAYER                                                           │
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐                    │
 │  │   XGBOOST   │    │    SHAP     │    │   MLFLOW    │                    │
 │  │ Classifier  │    │  Explainer  │    │  Tracking   │                    │
@@ -168,7 +168,7 @@ ML threshold before any automated action
 └───────────────────────────────────────┬─────────────────────────────────────┘
                                         │
 ┌───────────────────────────────────────▼─────────────────────────────────────┐
-│  🛡️  ENFORCE LAYER                                                         │
+│  [SHIELD]  ENFORCE LAYER                                                         │
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐                    │
 │  │     OPA     │    │   KYVERNO   │    │  BACKSTAGE  │                    │
 │  │ Policy Engine│   │  Admission  │    │  Developer  │                    │
@@ -177,7 +177,7 @@ ML threshold before any automated action
 └───────────────────────────────────────┬─────────────────────────────────────┘
                                         │
 ┌───────────────────────────────────────▼─────────────────────────────────────┐
-│  ⚡ ACT LAYER                                                               │
+│  [FAST] ACT LAYER                                                               │
 │  ┌─────────────────────────┐    ┌─────────────────────────┐                │
 │  │    GITHUB ACTIONS       │ →  │        FLAGGER          │                │
 │  │   (Orchestration)       │    │   (Canary Deployment)   │                │
@@ -187,112 +187,112 @@ ML threshold before any automated action
 
 ---
 
-## 📁 Repository Structure
+## [FOLDER] Repository Structure
 
 <details>
-<summary><strong>📂 Click to Expand Full Directory Tree</strong></summary>
+<summary><strong>[DIR] Click to Expand Full Directory Tree</strong></summary>
 
 ```
 .
-├── .github/workflows/          # 🔄 GitHub Actions for 3-stage decommission
-│   ├── stage1-watch-only.yml   # 📊 Daily classification report
-│   ├── stage2-tell-owner.yml   # 📧 Open GitHub issue for zombie candidates
-│   └── stage3-turn-it-off.yml  # 🔌 Canary → slow drain → remove
+├── .github/workflows/          # [CYCLE] GitHub Actions for 3-stage decommission
+│   ├── stage1-watch-only.yml   # [CHART] Daily classification report
+│   ├── stage2-tell-owner.yml   # [MAIL] Open GitHub issue for zombie candidates
+│   └── stage3-turn-it-off.yml  # [PLUG] Canary → slow drain → remove
 │
-├── compliance/                 # 📜 Regulatory documentation
-│   ├── compliance-checklist.md # ✅ Compliance verification
-│   ├── governance-charter.md   # 📋 Governance framework
-│   └── regulatory-mapping.md   # 🔗 Standards mapping
+├── compliance/                 # [SCROLL] Regulatory documentation
+│   ├── compliance-checklist.md # [OK] Compliance verification
+│   ├── governance-charter.md   # [DOC] Governance framework
+│   └── regulatory-mapping.md   # [LINK] Standards mapping
 │
-├── demo/                       # 🎮 Demo and testing
-│   ├── kind-config.yaml        # ☸️ kind cluster config (3 nodes)
+├── demo/                       # [GAME] Demo and testing
+│   ├── kind-config.yaml        # [K8S] kind cluster config (3 nodes)
 │   ├── scripts/
-│   │   ├── deploy-all.sh       # 🚀 Full platform deployment
-│   │   ├── generate-test-data.ps1 # 🎲 Generate synthetic data
-│   │   ├── run-ml-demo.sh      # 🤖 ML pipeline demo
-│   │   ├── setup-kind.sh       # ⚙️ kind + MetalLB setup
-│   │   └── verify.sh           # 🔍 Component health checks
+│   │   ├── deploy-all.sh       # [LAUNCH] Full platform deployment
+│   │   ├── generate-test-data.ps1 # [DATA] Generate synthetic data
+│   │   ├── run-ml-demo.sh      # [BOT] ML pipeline demo
+│   │   ├── setup-kind.sh       # [SETUP] kind + MetalLB setup
+│   │   └── verify.sh           # [SEARCH] Component health checks
 │   └── traffic-generator/
-│       ├── simulate.py         # 🎯 Union Bank-scale traffic simulator
-│       └── Dockerfile          # 🐳 Container build
+│       ├── simulate.py         # [TARGET] Union Bank-scale traffic simulator
+│       └── Dockerfile          # [WHALE] Container build
 │
-├── discovery/                  # 🔍 API discovery methods
-│   ├── frontend-analyzer/      # 🌐 Playwright-based JS bundle analysis
-│   ├── staging-scanner/        # 🎯 Kiterunner-style path scanner
-│   │   ├── scanner.sh          # 🔍 Scanner script
-│   │   └── Dockerfile          # 🐳 Container build
-│   └── waf-poller/             # 📡 WAF log integration
-│       ├── main.py             # 🐍 Python poller
-│       └── Dockerfile          # 🐳 Container build
+├── discovery/                  # [SEARCH] API discovery methods
+│   ├── frontend-analyzer/      # [GLOBE] Playwright-based JS bundle analysis
+│   ├── staging-scanner/        # [TARGET] Kiterunner-style path scanner
+│   │   ├── scanner.sh          # [SEARCH] Scanner script
+│   │   └── Dockerfile          # [WHALE] Container build
+│   └── waf-poller/             # [SIGNAL] WAF log integration
+│       ├── main.py             # [PY] Python poller
+│       └── Dockerfile          # [WHALE] Container build
 │
-├── flink-job/                  # ⚡ Apache Flink feature computation (Java)
-│   ├── pom.xml                 # 📦 Maven dependencies
-│   └── src/                    # 📂 Source code
+├── flink-job/                  # [FAST] Apache Flink feature computation (Java)
+│   ├── pom.xml                 # [PKG] Maven dependencies
+│   └── src/                    # [DIR] Source code
 │
-├── infra/                      # ☸️ Kubernetes infrastructure
+├── infra/                      # [K8S] Kubernetes infrastructure
 │   ├── k8s/
-│   │   ├── kafka/              # 📨 Strimzi operator + cluster + ACLs
-│   │   ├── flink/              # ⚡ Flink operator + deployment + topics
-│   │   ├── minio/              # 💾 MinIO deployment + buckets
-│   │   ├── redis/              # ⚡ Redis Sentinel (3-node)
-│   │   ├── feast/              # 🧠 Feast feature store
-│   │   ├── mlflow/             # 📊 MLflow tracking server
-│   │   ├── opa/                # 🛡️  Open Policy Agent
-│   │   ├── backstage/          # 🎭 Backstage developer portal
-│   │   ├── kyverno/            # 🔒 Kyverno admission controller + policies
-│   │   ├── flagger/            # 🚩 Flagger canary controller
-│   │   ├── rbac.yaml           # 👤 Role-based access control
-│   │   ├── network-policies.yaml # 🌐 Network segmentation
-│   │   └── namespaces.yaml     # 📂 Namespace definitions
+│   │   ├── kafka/              # [INBOX] Strimzi operator + cluster + ACLs
+│   │   ├── flink/              # [FAST] Flink operator + deployment + topics
+│   │   ├── minio/              # [DISK] MinIO deployment + buckets
+│   │   ├── redis/              # [FAST] Redis Sentinel (3-node)
+│   │   ├── feast/              # [BRAIN] Feast feature store
+│   │   ├── mlflow/             # [CHART] MLflow tracking server
+│   │   ├── opa/                # [SHIELD]  Open Policy Agent
+│   │   ├── backstage/          # [MASK] Backstage developer portal
+│   │   ├── kyverno/            # [LOCK] Kyverno admission controller + policies
+│   │   ├── flagger/            # [FLAG] Flagger canary controller
+│   │   ├── rbac.yaml           # [USER] Role-based access control
+│   │   ├── network-policies.yaml # [GLOBE] Network segmentation
+│   │   └── namespaces.yaml     # [DIR] Namespace definitions
 │   └── zeek/
-│       ├── zeek-daemonset.yaml # 👁️ Zeek sensor deployment
+│       ├── zeek-daemonset.yaml # [EYE]️ Zeek sensor deployment
 │       └── scripts/
-│           └── stream-to-kafka.py # 📨 Zeek → Kafka bridge
+│           └── stream-to-kafka.py # [INBOX] Zeek → Kafka bridge
 │
-├── ml-pipeline/                # 🤖 ML training and inference
-│   ├── train.py                # 🎓 XGBoost training with MLflow tracking
-│   ├── predict.py              # 🔮 Classification with SHAP explanations
-│   ├── features.py             # 📊 Feature column definitions
-│   ├── requirements.txt        # 📦 Python dependencies
-│   ├── Dockerfile              # 🐳 Container build
-│   └── tests/                  # 🧪 Unit tests
+├── ml-pipeline/                # [BOT] ML training and inference
+│   ├── train.py                # [HAT] XGBoost training with MLflow tracking
+│   ├── predict.py              # [CRYSTAL] Classification with SHAP explanations
+│   ├── features.py             # [CHART] Feature column definitions
+│   ├── requirements.txt        # [PKG] Python dependencies
+│   ├── Dockerfile              # [WHALE] Container build
+│   └── tests/                  # [FLASK] Unit tests
 │
-├── demo-all.ps1                # 🎮 One-command full demo (Windows)
-├── requirements.txt            # 📦 Root Python dependencies
-└── Plan.md                     # 📋 Full architecture and design document
+├── demo-all.ps1                # [GAME] One-command full demo (Windows)
+├── requirements.txt            # [PKG] Root Python dependencies
+└── Plan.md                     # [DOC] Full architecture and design document
 ```
 
 </details>
 
 ---
 
-## 🚀 Getting Started
+## [LAUNCH] Getting Started
 
-### ⚙️ Prerequisites
+### [SETUP] Prerequisites
 
 <table>
 <tr>
 <td width="50%">
 
-#### 🔧 Core Tools
+#### [WRENCH] Core Tools
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| 🐍 Python | 3.11+ | ML pipeline, traffic generator |
-| ☕ Java | 11+ | Flink job compilation |
-| 📦 Maven | 3.8+ | Flink job build |
-| 🐳 Docker | 24+ | Container builds |
+| [PY] Python | 3.11+ | ML pipeline, traffic generator |
+| [JAVA] Java | 11+ | Flink job compilation |
+| [PKG] Maven | 3.8+ | Flink job build |
+| [WHALE] Docker | 24+ | Container builds |
 
 </td>
 <td width="50%">
 
-#### ☸️ Kubernetes Tools
+#### [K8S] Kubernetes Tools
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| ☸️ kind | 0.20+ | Local Kubernetes cluster |
-| 🔧 kubectl | 1.29+ | Kubernetes management |
-| 📊 MLflow | 2.x | Model tracking |
+| [K8S] kind | 0.20+ | Local Kubernetes cluster |
+| [WRENCH] kubectl | 1.29+ | Kubernetes management |
+| [CHART] MLflow | 2.x | Model tracking |
 
 </td>
 </tr>
@@ -300,7 +300,7 @@ ML threshold before any automated action
 
 ---
 
-### ⚡ Quick Start — ML Pipeline Only
+### [FAST] Quick Start — ML Pipeline Only
 
 <div align="center">
 
@@ -309,23 +309,23 @@ ML threshold before any automated action
 </div>
 
 ```bash
-# 📦 1. Install Python dependencies
+# [PKG] 1. Install Python dependencies
 pip install -r requirements.txt
 
-# 🎲 2. Generate synthetic training data (10,000+ endpoints)
+# [DATA] 2. Generate synthetic training data (10,000+ endpoints)
 python demo/traffic-generator/simulate.py --generate-features
 # Output: demo/test-data/endpoint_features.parquet
 
-# 📊 3. Start MLflow tracking server
+# [CHART] 3. Start MLflow tracking server
 mlflow server --host 127.0.0.1 --port 5000
 
-# 🎓 4. Train XGBoost model
+# [HAT] 4. Train XGBoost model
 MLFLOW_TRACKING_URI=http://localhost:5000 \
 MLFLOW_EXPERIMENT_NAME=zombie-classification \
 DATA_PATH=demo/test-data/endpoint_features.parquet \
   python ml-pipeline/train.py
 
-# 🔮 5. Test prediction
+# [CRYSTAL] 5. Test prediction
 python ml-pipeline/predict.py test_features.json
 ```
 
@@ -334,10 +334,10 @@ python ml-pipeline/predict.py test_features.json
 **Or use the demo script:**
 
 ```bash
-# 🐧 Linux/macOS
+# [PENGUIN] Linux/macOS
 bash demo/scripts/run-ml-demo.sh
 
-# 🪟 Windows (PowerShell)
+# [WIN] Windows (PowerShell)
 ./demo-all.ps1
 ```
 
@@ -345,7 +345,7 @@ bash demo/scripts/run-ml-demo.sh
 
 ---
 
-### ☸️ Full Platform — Local Kubernetes
+### [K8S] Full Platform — Local Kubernetes
 
 <div align="center">
 
@@ -357,13 +357,13 @@ bash demo/scripts/run-ml-demo.sh
 <tr>
 <td width="50%">
 
-#### 🚀 Option A: One Command (Windows)
+#### [LAUNCH] Option A: One Command (Windows)
 
 ```powershell
 ./demo-all.ps1
 ```
 
-#### 🔧 Option B: Step by Step
+#### [WRENCH] Option B: Step by Step
 
 ```bash
 # 1️⃣ Create kind cluster + MetalLB
@@ -379,45 +379,45 @@ bash demo/scripts/verify.sh
 </td>
 <td width="50%">
 
-#### 📦 What Gets Deployed
+#### [PKG] What Gets Deployed
 
 | Component | Status |
 |-----------|--------|
-| 📨 Kafka (Strimzi, 3 Brokers) | ✅ |
-| 👁️ Zeek Sensor (DaemonSet) | ✅ |
-| ⚡ Flink Feature Job | ✅ |
-| 💾 MinIO (S3 Compat) | ✅ |
-| ⚡ Redis Sentinel (3-Node HA) | ✅ |
-| 🧠 Feast Feature Store | ✅ |
-| 📊 MLflow Tracking | ✅ |
-| 🛡️ OPA Policy Engine | ✅ |
-| 🎭 Backstage Portal | ✅ |
-| 🔒 Kyverno Admission | ✅ |
-| 🚩 Flagger Canary | ✅ |
+| [INBOX] Kafka (Strimzi, 3 Brokers) | [OK] |
+| [EYE]️ Zeek Sensor (DaemonSet) | [OK] |
+| [FAST] Flink Feature Job | [OK] |
+| [DISK] MinIO (S3 Compat) | [OK] |
+| [FAST] Redis Sentinel (3-Node HA) | [OK] |
+| [BRAIN] Feast Feature Store | [OK] |
+| [CHART] MLflow Tracking | [OK] |
+| [SHIELD] OPA Policy Engine | [OK] |
+| [MASK] Backstage Portal | [OK] |
+| [LOCK] Kyverno Admission | [OK] |
+| [FLAG] Flagger Canary | [OK] |
 
 </td>
 </tr>
 </table>
 
-#### 🔌 Access Services After Deployment
+#### [PLUG] Access Services After Deployment
 
 ```bash
-# 📊 MLflow UI
+# [CHART] MLflow UI
 kubectl port-forward -n detect svc/mlflow 5000:5000
 
-# 🛡️ OPA Policy API
+# [SHIELD] OPA Policy API
 kubectl port-forward -n enforce svc/opa 8181:8181
 
-# 🎭 Backstage Developer Portal
+# [MASK] Backstage Developer Portal
 kubectl port-forward -n enforce svc/backstage 7007:7007
 
-# 💾 MinIO Console
+# [DISK] MinIO Console
 kubectl port-forward -n remember svc/minio-console 9001:9001
 ```
 
 ---
 
-## 🎲 Generating Synthetic Data
+## [DATA] Generating Synthetic Data
 
 <div align="center">
 
@@ -426,30 +426,30 @@ kubectl port-forward -n remember svc/minio-console 9001:9001
 </div>
 
 ```bash
-# 🎲 Generate feature dataset
+# [DATA] Generate feature dataset
 python demo/traffic-generator/simulate.py --generate-features
 
-# 📁 Output: demo/test-data/endpoint_features.parquet
-# 📊 ~10,000 rows × 30 columns (16 features + metadata + labels)
+# [FOLDER] Output: demo/test-data/endpoint_features.parquet
+# [CHART] ~10,000 rows × 30 columns (16 features + metadata + labels)
 ```
 
 <table>
 <tr>
 <td width="50%">
 
-#### 🎯 What the Simulator Models
+#### [TARGET] What the Simulator Models
 
-- 🏦 **17 banking domains** (Accounts, UPI, NEFT, IMPS, RTGS, Cards, Loans, KYC, etc.)
-- 🔢 **10,000+ unique endpoints** with version drift (v1/v2/v3)
-- 📈 **Realistic traffic patterns** per domain (critical, high, moderate, low, batch)
-- 🎲 **Overlapping feature distributions** (forces multi-feature learning)
-- 🌐 **20+ user-agents** (real browsers, mobile apps, monitoring tools)
-- 💰 **Annual cost estimation** in INR per endpoint
+- [BANK] **17 banking domains** (Accounts, UPI, NEFT, IMPS, RTGS, Cards, Loans, KYC, etc.)
+- [NUM] **10,000+ unique endpoints** with version drift (v1/v2/v3)
+- [CHART] **Realistic traffic patterns** per domain (critical, high, moderate, low, batch)
+- [DATA] **Overlapping feature distributions** (forces multi-feature learning)
+- [GLOBE] **20+ user-agents** (real browsers, mobile apps, monitoring tools)
+- [COST] **Annual cost estimation** in INR per endpoint
 
 </td>
 <td width="50%">
 
-#### 📊 Dataset Columns
+#### [CHART] Dataset Columns
 
 | Column | Description |
 |--------|-------------|
@@ -474,33 +474,33 @@ python demo/traffic-generator/simulate.py --generate-features
 
 ---
 
-## 📦 Dependencies
+## [PKG] Dependencies
 
 <details>
-<summary><strong>🐍 Python Dependencies</strong></summary>
+<summary><strong>[PY] Python Dependencies</strong></summary>
 
 ```
-# 📦 requirements.txt
-xgboost          # 🚀 Gradient boosting classifier
-shap             # 🔮 SHAP explanations
-mlflow           # 📊 Experiment tracking + model registry
-pandas           # 🐼 Data manipulation
-numpy            # 🔢 Numerical computation
-scikit-learn     # 🎯 Metrics, train/test split
-pyarrow          # 📁 Parquet file support
+# [PKG] requirements.txt
+xgboost          # [LAUNCH] Gradient boosting classifier
+shap             # [CRYSTAL] SHAP explanations
+mlflow           # [CHART] Experiment tracking + model registry
+pandas           # [PANDA] Data manipulation
+numpy            # [NUM] Numerical computation
+scikit-learn     # [TARGET] Metrics, train/test split
+pyarrow          # [FOLDER] Parquet file support
 boto3            # ☁️ S3/MinIO client
-optuna           # ⚡ Hyperparameter optimization
-cloudpickle      # 📦 Model serialization
+optuna           # [FAST] Hyperparameter optimization
+cloudpickle      # [PKG] Model serialization
 
-# 🔍 Discovery components
-requests         # 🌐 HTTP client (WAF poller)
-confluent-kafka  # 📨 Kafka producer (WAF/Zeek → Kafka)
+# [SEARCH] Discovery components
+requests         # [GLOBE] HTTP client (WAF poller)
+confluent-kafka  # [INBOX] Kafka producer (WAF/Zeek → Kafka)
 ```
 
 </details>
 
 <details>
-<summary><strong>☕ Java Dependencies</strong></summary>
+<summary><strong>[JAVA] Java Dependencies</strong></summary>
 
 ```xml
 <!-- flink-job/pom.xml -->
@@ -511,7 +511,7 @@ Jackson 2.17.0 (JSON parsing)
 </details>
 
 <details>
-<summary><strong>☸️ Infrastructure Dependencies</strong></summary>
+<summary><strong>[K8S] Infrastructure Dependencies</strong></summary>
 
 | Component | Version | Namespace |
 |-----------|---------|-----------|
@@ -531,9 +531,9 @@ Jackson 2.17.0 (JSON parsing)
 
 ---
 
-## 🔧 How It Works
+## [WRENCH] How It Works
 
-### 🔍 Discovery Methods
+### [SEARCH] Discovery Methods
 
 <table>
 <tr>
@@ -541,16 +541,16 @@ Jackson 2.17.0 (JSON parsing)
 
 | Method | Layer | Coverage | Status |
 |--------|-------|----------|--------|
-| 👁️ Passive Network Capture (Zeek) | Layer 2 | All internal HTTP traffic | 🟢 Primary |
-| 📡 WAF Log Integration | Application | External-facing APIs | 🟢 Active |
-| 🔌 API Gateway Integration | Application | All routed traffic | 🟡 Planned |
-| 🌐 Frontend Static Analysis | Build time | Client-side API calls | 🟢 Active |
-| 🎯 Staging Scanner (Kiterunner) | Application | Staging environments only | 🟢 Active |
+| [EYE]️ Passive Network Capture (Zeek) | Layer 2 | All internal HTTP traffic | [DOT] Primary |
+| [SIGNAL] WAF Log Integration | Application | External-facing APIs | [DOT] Active |
+| [PLUG] API Gateway Integration | Application | All routed traffic | [DOT] Planned |
+| [GLOBE] Frontend Static Analysis | Build time | Client-side API calls | [DOT] Active |
+| [TARGET] Staging Scanner (Kiterunner) | Application | Staging environments only | [DOT] Active |
 
 </td>
 <td width="40%">
 
-#### 🔑 Key Insight
+#### [KEY] Key Insight
 
 > **Layer 2 mirroring bypasses WAF completely** — Zeek sees everything on the internal network, regardless of WAF rules.
 
@@ -562,13 +562,13 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 
 ---
 
-### 🤖 ML Classification
+### [BOT] ML Classification
 
 <table>
 <tr>
 <td width="50%">
 
-#### 🎯 Model Specifications
+#### [TARGET] Model Specifications
 
 | Parameter | Value |
 |-----------|-------|
@@ -583,7 +583,7 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 </td>
 <td width="50%">
 
-#### 📊 16 Features Per Endpoint
+#### [CHART] 16 Features Per Endpoint
 
 | Category | Features |
 |----------|----------|
@@ -600,7 +600,7 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 </tr>
 </table>
 
-#### 🔮 SHAP Explainability
+#### [CRYSTAL] SHAP Explainability
 
 <div align="center">
 
@@ -610,7 +610,7 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  🔮 SHAP Explanation for Endpoint: api.bank.example.com|GET|/api/v1/users  │
+│  [CRYSTAL] SHAP Explanation for Endpoint: api.bank.example.com|GET|/api/v1/users  │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  real_calls=0.00          (low,  -1.92)  ████████████████████░░░░░░░░░░░░  │
@@ -619,12 +619,12 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 │  unique_user_agents=1     (low,  -0.87)  █████████░░░░░░░░░░░░░░░░░░░░░░  │
 │  unique_source_ips=1      (low,  -0.65)  ███████░░░░░░░░░░░░░░░░░░░░░░░░  │
 │                                                                             │
-│  🎯 Prediction: ZOMBIE (confidence: 0.94)                                  │
+│  [TARGET] Prediction: ZOMBIE (confidence: 0.94)                                  │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### 🛡️ Safety Mechanism
+#### [SHIELD] Safety Mechanism
 
 <div align="center">
 
@@ -639,14 +639,14 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 │                                        ├─→ Disagreement: 0.35 > 0.30      │
 │  Model B Prediction:  ACTIVE (0.57)  ─┘                                    │
 │                                                                             │
-│  ⚠️  AUTOMATIC HUMAN REVIEW TRIGGERED                                      │
+│  [WARN]  AUTOMATIC HUMAN REVIEW TRIGGERED                                      │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 🔄 Three-Stage Decommission
+### [CYCLE] Three-Stage Decommission
 
 <div align="center">
 
@@ -658,14 +658,14 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 <tr>
 <td width="33%" align="center">
 
-#### 📊 Stage 1: Watch Only
+#### [CHART] Stage 1: Watch Only
 **Weeks 1–4**
 
 ---
 
-✅ Classify endpoints
-✅ Generate reports
-✅ No automated actions
+[OK] Classify endpoints
+[OK] Generate reports
+[OK] No automated actions
 
 **Exit Criteria:**
 - F1 ≥ 0.85
@@ -674,14 +674,14 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 </td>
 <td width="34%" align="center">
 
-#### 📧 Stage 2: Tell Owner
+#### [MAIL] Stage 2: Tell Owner
 **Weeks 5–12**
 
 ---
 
-✅ Auto-open GitHub issue
-✅ Include SHAP explanation
-✅ 30-day response window
+[OK] Auto-open GitHub issue
+[OK] Include SHAP explanation
+[OK] 30-day response window
 
 **Owner Options:**
 - Confirm (zombie)
@@ -691,14 +691,14 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 </td>
 <td width="33%" align="center">
 
-#### 🔌 Stage 3: Turn It Off
+#### [PLUG] Stage 3: Turn It Off
 **Week 13+**
 
 ---
 
-✅ 24h canary at 1% traffic
-✅ 10-day slow drain
-✅ Remove endpoint
+[OK] 24h canary at 1% traffic
+[OK] 10-day slow drain
+[OK] Remove endpoint
 
 **Safety Gates:**
 - 2 human approvers
@@ -709,7 +709,7 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 </tr>
 </table>
 
-#### 🔄 Decommission Flow
+#### [CYCLE] Decommission Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -731,15 +731,15 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 
 ---
 
-## ⚙️ Configuration
+## [SETUP] Configuration
 
-### 🔧 Environment Variables
+### [WRENCH] Environment Variables
 
 <table>
 <tr>
 <td width="50%">
 
-#### 🤖 ML Pipeline
+#### [BOT] ML Pipeline
 
 | Variable | Default |
 |----------|---------|
@@ -751,7 +751,7 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 </td>
 <td width="50%">
 
-#### 🏗️ Infrastructure
+#### [BUILD] Infrastructure
 
 | Variable | Default |
 |----------|---------|
@@ -767,13 +767,13 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 
 ---
 
-## ⚠️ Known Limitations
+## [WARN] Known Limitations
 
 <table>
 <tr>
 <td width="50%">
 
-#### 🔒 Technical Limitations
+#### [LOCK] Technical Limitations
 
 | Limitation | Impact | Mitigation |
 |------------|--------|------------|
@@ -784,7 +784,7 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 </td>
 <td width="50%">
 
-#### 🌐 Coverage Limitations
+#### [GLOBE] Coverage Limitations
 
 | Limitation | Impact | Mitigation |
 |------------|--------|------------|
@@ -798,7 +798,7 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 
 ---
 
-## 📜 Regulatory Compliance
+## [SCROLL] Regulatory Compliance
 
 <div align="center">
 
@@ -812,18 +812,18 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 
 | Standard | Coverage |
 |----------|----------|
-| 🛡️ **OWASP API Top 10** | API2 (Broken Auth), API7 (Misconfiguration), API9 (Improper Inventory) |
-| 🔒 **NIST CSF 2.0** | All 5 functions: Identify, Protect, Detect, Respond, Recover |
-| 🇪🇺 **GDPR Article 25** | Metadata-only capture, no PII in SHAP, 30-day raw log retention |
+| [SHIELD] **OWASP API Top 10** | API2 (Broken Auth), API7 (Misconfiguration), API9 (Improper Inventory) |
+| [LOCK] **NIST CSF 2.0** | All 5 functions: Identify, Protect, Detect, Respond, Recover |
+| [EU] **GDPR Article 25** | Metadata-only capture, no PII in SHAP, 30-day raw log retention |
 
 </td>
 <td width="50%">
 
 | Standard | Coverage |
 |----------|----------|
-| 💳 **PCI-DSS v4 Req 3** | Zeek redaction of card data, AES-256 at rest, Kafka ACLs |
-| 🇮🇳 **RBI IT Framework** | Asset inventory (Backstage), vuln SLAs, change management (OPA audit) |
-| 🌐 **ISO 27001 A8.8** | Full lifecycle: detection → classification → removal |
+| [CARD] **PCI-DSS v4 Req 3** | Zeek redaction of card data, AES-256 at rest, Kafka ACLs |
+| [IN] **RBI IT Framework** | Asset inventory (Backstage), vuln SLAs, change management (OPA audit) |
+| [GLOBE] **ISO 27001 A8.8** | Full lifecycle: detection → classification → removal |
 
 </td>
 </tr>
@@ -831,7 +831,7 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 
 ---
 
-## 📄 License
+## [PAGE] License
 
 <div align="center">
 
@@ -845,7 +845,7 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 
 <div align="center">
 
-### 🏆 Built for PSB Hackathon iDEA 2.0 — Problem Statement PS9
+### [TROPHY] Built for PSB Hackathon iDEA 2.0 — Problem Statement PS9
 
 **Team Logic Legion**
 

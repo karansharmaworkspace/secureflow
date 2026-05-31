@@ -878,6 +878,6 @@ This is critical because Union Bank's WAF blocks external OSINT approaches.
 
 ---
 
-![Footer](https://img.shields.io/badge/Union_Bank_of_India-Hackathon_2024-blue?style=for-the-badge)
+![Footer](https://img.shields.io/badge/Union_Bank_of_India-Hackathon_2026-blue?style=for-the-badge)
 
 </div>

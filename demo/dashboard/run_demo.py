@@ -42,7 +42,7 @@ def main():
     report_html = os.path.join(out_dir, "registry_report.html")
 
     print("=" * 72)
-    print("  SecureFlow Everywhere - API Registry Scan Demo")
+    print("  SecureFlow - API Registry Scan Demo")
     print("=" * 72)
 
     # Step 1: Check/generate feature data

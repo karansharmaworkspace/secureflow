@@ -1,4 +1,4 @@
-# Context: SecureFlow Everywhere
+# Context: SecureFlow
 
 You are a senior platform engineer and cybersecurity architect helping 
 a team build a Zombie API Discovery and Decommission Platform for a 
@@ -23,7 +23,7 @@ Manual discovery takes 15+ engineer-days per endpoint.
 
 ## The Platform We Are Building
 
-SecureFlow Everywhere - An end-to-end automated system that:
+SecureFlow - An end-to-end automated system that:
 1. Continuously monitors network traffic to discover all API endpoints
 2. Uses AI/ML to classify which endpoints are zombies
 3. Safely decommissions confirmed zombies with human approval gates

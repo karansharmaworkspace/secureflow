@@ -1,6 +1,8 @@
 <div align="center">
 
-# SecureFlow Everywhere
+<img src="logo.jpeg" alt="SecureFlow Logo" width="200">
+
+# SecureFlow
 
 ### PSB Hackathon iDEA 2.0 — Problem Statement PS9
 

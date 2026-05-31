@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SecureFlow Everywhere - HTML Report Generator
+SecureFlow - HTML Report Generator
 
 Reads registry_scan.json and produces a self-contained HTML dashboard with:
   - Summary cards (active/deprecated/orphaned counts, avg score)
@@ -115,7 +115,7 @@ def generate_html(scan_data):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SecureFlow Everywhere - API Registry Report</title>
+<title>SecureFlow - API Registry Report</title>
 <style>
 * {{ margin:0; padding:0; box-sizing:border-box; }}
 body {{ background:#1a1a2e; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; padding:24px; }}

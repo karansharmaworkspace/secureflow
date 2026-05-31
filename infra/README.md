@@ -1,66 +1,46 @@
-# Infrastructure — Phase 1
+# Infrastructure
 
-## Architecture
+Kubernetes manifests and configurations for the full SecureFlow platform.
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                     Core Switch                          │
-│  SPAN/TAP port mirrors ALL internal traffic              │
-└────────────┬─────────────────────────────────────────────┘
-             │ (Layer 2 — bypasses WAF)
-┌────────────▼─────────────────────────────────────────────┐
-│  Zeek Sensor (DaemonSet, hostNetwork)                    │
-│  Extracts: method, path, status, user-agent, host,       │
-│            referrer, response_size                       │
-│  NO payload content captured                             │
-└────────────┬─────────────────────────────────────────────┘
-             │ (JSON logs via stdin)
-┌────────────▼─────────────────────────────────────────────┐
-│  Kafka Producer (sidecar container)                      │
-│  Reads Zeek log file, writes to Kafka topic              │
-└────────────┬─────────────────────────────────────────────┘
-             │
-┌────────────▼─────────────────────────────────────────────┐
-│  Kafka Cluster (3 brokers, Strimzi operator)             │
-│  Topic: raw-api-calls (12 partitions, RF=3)              │
-│  Retention: 720 hours (30 days)                          │
-└──────────────────────────────────────────────────────────┘
-```
+## Subdirectories
 
-## Deploy
+### k8s/
+All Kubernetes YAML manifests organized by component and namespace.
+
+| Directory | Component | Namespace |
+|-----------|-----------|-----------|
+| `kafka/` | Strimzi operator, Kafka cluster (3 brokers), ACLs, topics | listen |
+| `flink/` | Flink operator, feature computation job, Kafka topics | listen |
+| `minio/` | MinIO deployment (S3-compatible), bucket creation | remember |
+| `redis/` | Redis Sentinel (3-node HA) | remember |
+| `feast/` | Feast feature store serving | remember |
+| `mlflow/` | MLflow tracking server | detect |
+| `opa/` | Open Policy Agent (Rego policies) | enforce |
+| `backstage/` | Backstage developer portal | enforce |
+| `kyverno/` | Kyverno admission controller + policies | enforce |
+| `flagger/` | Flagger canary controller | flagger |
+
+| File | Purpose |
+|------|---------|
+| `namespaces.yaml` | Creates all 5 namespaces: listen, remember, detect, enforce, act |
+| `rbac.yaml` | Role-based access control for inter-service communication |
+| `network-policies.yaml` | Network segmentation between namespaces |
+| `Makefile` | Deployment automation commands |
+
+### zeek/
+Passive network sensor configuration.
+
+| File | Purpose |
+|------|---------|
+| `zeek-daemonset.yaml` | Kubernetes DaemonSet for running Zeek on every node |
+| `Dockerfile` | Custom Zeek image with HTTP log scripts |
+| `config/local.zeek` | Local Zeek configuration |
+| `config/zeek-http-log.zeek` | HTTP metadata extraction script |
+| `scripts/stream-to-kafka.py` | Bridge from Zeek log output to Kafka producer |
+
+## Deployment
 
 ```bash
+cd infra/k8s
 make all
 ```
-
-## Verify
-
-```bash
-# Check logs flowing into Kafka
-kubectl exec -n listen deployment/kafka-cluster-kafka-0 -- \
-  bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
-  --topic raw-api-calls --from-beginning --max-messages 5
-```
-
-## Data Schema
-
-```json
-{
-  "ts": 1717000000.0,
-  "method": "GET",
-  "path": "/api/v1/users",
-  "status": 200,
-  "user_agent": "Mozilla/5.0 ...",
-  "host": "api.bank.example.com",
-  "referrer": "-",
-  "response_size": 1234,
-  "source_ip": "10.0.1.42"
-}
-```
-
-## Compliance Notes
-
-- **No PII**: Zeek extracts metadata only; no request/response body captured
-- **PCI-DSS**: Card data never enters the pipeline (metadata only)
-- **Retention**: Kafka configured for 30-day retention (tunable)
-- **Access**: Kafka ACLs restrict producer/consumer access to authorized services

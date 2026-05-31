@@ -234,7 +234,6 @@ PLOTLY_LAYOUT = dict(
     plot_bgcolor="#16213e",
     font=dict(color="#e0e0e0"),
     margin=dict(l=20, r=20, t=40, b=20),
-    height=350,
 )
 
 
@@ -392,7 +391,7 @@ def render_results(data: dict, code_mode: bool = False):
             fig_pie = px.pie(values=[s["active"], s["deprecated"], s["orphaned"]],
                              names=["Active", "Deprecated", "Orphaned"],
                              color_discrete_sequence=["#53d769", "#ffcc00", "#e94560"], hole=0.4)
-        fig_pie.update_layout(**PLOTLY_LAYOUT)
+        fig_pie.update_layout(**PLOTLY_LAYOUT, height=350)
         st.plotly_chart(fig_pie, use_container_width=True)
 
     with chart_col2:
@@ -411,7 +410,7 @@ def render_results(data: dict, code_mode: bool = False):
             text=[risk_data.get(r, 0) for r in risk_order],
             textposition="auto",
         ))
-        fig_risk.update_layout(**PLOTLY_LAYOUT, xaxis_title="Count", yaxis_title="")
+        fig_risk.update_layout(**PLOTLY_LAYOUT, height=350, xaxis_title="Count", yaxis_title="")
         st.plotly_chart(fig_risk, use_container_width=True)
 
     finding_counts = data.get("finding_counts", {})
@@ -434,7 +433,7 @@ def render_results(data: dict, code_mode: bool = False):
             if fw:
                 fig_fw = px.bar(x=list(fw.keys()), y=list(fw.values()), color=list(fw.keys()),
                                 color_discrete_sequence=px.colors.qualitative.Set2)
-                fig_fw.update_layout(**PLOTLY_LAYOUT, xaxis_title="", yaxis_title="Routes", showlegend=False)
+                fig_fw.update_layout(**PLOTLY_LAYOUT, height=350, xaxis_title="", yaxis_title="Routes", showlegend=False)
                 st.plotly_chart(fig_fw, use_container_width=True)
         with chart_col4:
             st.markdown('<div class="section-card"><h3>Language Breakdown</h3></div>', unsafe_allow_html=True)
@@ -442,14 +441,14 @@ def render_results(data: dict, code_mode: bool = False):
             if lang:
                 fig_lang = px.pie(values=list(lang.values()), names=list(lang.keys()), hole=0.5,
                                   color_discrete_sequence=px.colors.qualitative.Pastel)
-                fig_lang.update_layout(**PLOTLY_LAYOUT)
+                fig_lang.update_layout(**PLOTLY_LAYOUT, height=350)
                 st.plotly_chart(fig_lang, use_container_width=True)
 
     if endpoints:
         st.markdown('<div class="section-card"><h3>Score Distribution</h3></div>', unsafe_allow_html=True)
         scores = [ep["security_score"] for ep in endpoints]
         fig_hist = px.histogram(x=scores, nbins=20, color_discrete_sequence=["#0f3460"])
-        fig_hist.update_layout(**PLOTLY_LAYOUT, xaxis_title="Security Score", yaxis_title="Count")
+        fig_hist.update_layout(**PLOTLY_LAYOUT, height=350, xaxis_title="Security Score", yaxis_title="Count")
         st.plotly_chart(fig_hist, use_container_width=True)
 
     st.markdown('<div class="section-card"><h3>Endpoint Details</h3></div>', unsafe_allow_html=True)

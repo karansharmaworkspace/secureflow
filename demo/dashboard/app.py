@@ -27,6 +27,12 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent.parent
 LOGO_PATH = PROJECT_ROOT / "logo.jpeg"
 
+if not LOGO_PATH.exists():
+    for candidate in [Path.cwd() / "logo.jpeg", Path.cwd().parent / "logo.jpeg", SCRIPT_DIR / "logo.jpeg"]:
+        if candidate.exists():
+            LOGO_PATH = candidate
+            break
+
 # ---------------------------------------------------------------------------
 # API route detection patterns
 # ---------------------------------------------------------------------------
